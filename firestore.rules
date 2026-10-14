@@ -13,12 +13,12 @@ service cloud.firestore {
         }
 
         // Users: you can create and read your own profile, but you can't pick your own role
-match /users/{userId} {
-    allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
-    allow create: if isSignedIn() && request.auth.uid == userId &&
-        request.resource.data.role == 'student';
-    allow update, delete: if isAdmin();
-}
+        match /users/{userId} {
+            allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+            allow create: if isSignedIn() && request.auth.uid == userId &&
+                request.resource.data.role == 'student';
+            allow update, delete: if isAdmin();
+        }
 
         // items (the catalog): everyone signed in can look, only admins can modify
         match /items/{itemId} {
