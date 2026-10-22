@@ -4,15 +4,20 @@ import {
   getRedirectResult,
   signOut,
   onAuthStateChanged,
+  signInWithPopup,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase";
 
 const provider = new GoogleAuthProvider();
+const useRedirectLogin = !import.meta.env.DEV;
+let redirectHandled = false;
 
-// Sends the whole tab to Google. The page leaves, so nothing after this line runs.
+// Local dev is flaky with redirect auth on localhost, so use popup there.
+// Production keeps the nicer redirect flow without a popup.
 export function loginWithGoogle() {
-  return signInWithRedirect(auth, provider);
+  if (useRedirectLogin) return signInWithRedirect(auth, provider);
+  return signInWithPopup(auth, provider);
 }
 
 // First login only: create the users/{uid} profile. Never makes login "fail".
@@ -35,11 +40,19 @@ async function ensureProfile(user) {
 
 // Call once when the app starts. If we just came back from Google, finish the login.
 export async function finishRedirectLogin() {
+  if (!useRedirectLogin || redirectHandled) return null;
+  redirectHandled = true;
+
   try {
     const result = await getRedirectResult(auth);
-    if (result?.user) await ensureProfile(result.user);
+    if (result?.user) {
+      await ensureProfile(result.user);
+      return result.user;
+    }
+    return null;
   } catch (err) {
     console.error("Redirect sign-in failed:", err);
+    return null;
   }
 }
 
