@@ -1,12 +1,12 @@
 # Lab Borrow
 
 A mobile-first, offline-capable web app that digitizes a university lab's equipment
-borrowing process (paper borrow slip → instructor signature → return check → survey).
+borrowing process.
 
 ## Developers
-Vennjy Lugo
-Carl Joshua Magdael
-Clarence Jay Sy
+Vennjy Lugo  
+Carl Joshua Magdael  
+Clarence Jay Sy   
 
 ## Problem
 Students borrow lab equipment in bulk through a paper slip. The lab has poor signal,
@@ -38,9 +38,6 @@ and the admin will only adopt a digital system if it is at least as convenient a
 
 ## Slip status flow
 draft → submitted → released → returned
-
-## Out of scope (v1)
-Damage workflow, remote instructor approval, email notifications
 
 ## Tech stack
 - Vite + Preact (JavaScript)
