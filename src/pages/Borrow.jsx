@@ -5,6 +5,7 @@ import { createSlip } from "../lib/slips";
 import { submitSurvey } from "../lib/surveys";
 import { useCurrentUser } from "../lib/currentUser";
 import { ItemRow } from "../components/ItemRow";
+import { InstallAppButton } from "../components/InstallAppButton";
 
 const emptyDetails = {
   groupNumber: "",
@@ -20,6 +21,9 @@ export function Borrow() {
   const [step, setStep] = useState("items"); // items -> details -> review
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isOnline, setIsOnline] = useState(() => typeof navigator === "undefined" ? true : navigator.onLine);
+  const [catalogFromCache, setCatalogFromCache] = useState(false);
+  const offline = !isOnline || catalogFromCache;
   const [search, setSearch] = useState("");
   const [qty, setQty] = useState({}); // { itemId: number }
   const [details, setDetails] = useState(emptyDetails);
@@ -29,9 +33,21 @@ export function Borrow() {
   const [autoFillSurvey, setAutoFillSurvey] = useState(false);
 
   useEffect(() => {
+    const onOnline = () => setIsOnline(true);
+    const onOffline = () => setIsOnline(false);
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+    return () => {
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
+    };
+  }, []);
+
+  useEffect(() => {
     return watchItems(
-      (list) => {
+      (list, metadata) => {
         setItems(list);
+        setCatalogFromCache(metadata.fromCache);
         setLoading(false);
       },
       { onlyActive: true }
@@ -43,7 +59,8 @@ export function Borrow() {
   const visible = items.filter((i) => i.name.toLowerCase().includes(search.toLowerCase()));
 
   function setQuantity(item, value) {
-    const n = Math.max(0, Math.min(item.availableQty, Math.floor(Number(value)) || 0));
+    const maxQty = offline ? item.totalQty : item.availableQty;
+    const n = Math.max(0, Math.min(maxQty, Math.floor(Number(value)) || 0));
     setQty((q) => ({ ...q, [item.id]: n }));
   }
 
@@ -104,6 +121,11 @@ export function Borrow() {
     // Not awaited on purpose, so it works offline. Go straight to the next page.
     done.catch((err) => console.error("Slip was not saved:", err));
 
+    if (offline) {
+      route(`/slips/${id}`);
+      return;
+    }
+
     if (autoFillSurvey) {
       try {
         await submitSurvey(id, { name: details.leaderName.trim(), college: "", improvement: "" }, true);
@@ -122,16 +144,25 @@ export function Borrow() {
     return (
       <div class="borrow">
         <h2>Pick equipment</h2>
+        <InstallAppButton />
+        {offline && (
+          <div class="notice offline-notice" role="status">
+            <strong>Offline catalog</strong>
+            <p>You are viewing the last catalog saved on this device. You can still prepare a borrow request; item availability will be confirmed by the lab admin when it syncs.</p>
+          </div>
+        )}
         <input class="search" placeholder="Search items" value={search}
           onInput={(e) => setSearch(e.currentTarget.value)} />
 
         {loading && <p>Loading...</p>}
-        {!loading && items.length === 0 && <p>No equipment is listed yet.</p>}
+        {!loading && items.length === 0 && (
+          <p>{offline ? "No saved catalog is available yet. Connect to the internet once to download the equipment list." : "No equipment is listed yet."}</p>
+        )}
 
         <ul class="item-list">
           {visible.map((item) => (
             <ItemRow key={item.id} item={item} qty={qty[item.id] || 0}
-              onChange={(v) => setQuantity(item, v)} />
+              onChange={(v) => setQuantity(item, v)} offline={offline} />
           ))}
         </ul>
 

@@ -27,8 +27,11 @@ and the admin will only adopt a digital system if it is at least as convenient a
 - See what is currently out and with whom
 
 **Offline**
-- Installable PWA; catalog cached on device
-- Slips and returns save locally and sync automatically when signal returns
+- Install Lab Track from the browser menu or use the in-app install prompt to keep the app shell on the device
+- Open the Borrow page once while online to cache the equipment catalog; Firestore keeps the catalog in its local persistent cache
+- Previously loaded catalog items remain selectable offline using the cached total quantities
+- Borrow slips are saved locally and sync automatically when the connection returns
+- Cached stock can be out of date; the lab admin confirms actual availability before releasing equipment
 - "Pending sync" indicator
 
 ## Tech stack

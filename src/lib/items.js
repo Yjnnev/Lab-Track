@@ -8,10 +8,10 @@ const itemsRef = collection(db, "items");
 // Live list. Students use { onlyActive: true }; the admin catalog page shows everything.
 export function watchItems(callback, { onlyActive = false } = {}) {
   const q = onlyActive ? query(itemsRef, where("active", "==", true)) : itemsRef;
-  return onSnapshot(q, (snap) => {
+  return onSnapshot(q, { includeMetadataChanges: true }, (snap) => {
     const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     items.sort((a, b) => a.name.localeCompare(b.name));
-    callback(items);
+    callback(items, { fromCache: snap.metadata.fromCache });
   });
 }
 
