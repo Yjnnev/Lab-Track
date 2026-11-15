@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import QRCode from "qrcode";
 import { watchSlip } from "../lib/slips";
+import "../styles/Slips.css";
 
 export function SlipDetail({ params }) {
   const [slip, setSlip] = useState(undefined); // undefined = loading, null = not found
@@ -44,7 +45,9 @@ export function SlipDetail({ params }) {
         ))}
       </ul>
 
-      <a href="/slips">Back to my slips</a>
+      <div class="slip-actions">
+        <a class="btn" href="/slips">Back to my slips</a>
+      </div>
     </div>
   );
 }
