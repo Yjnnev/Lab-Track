@@ -22,7 +22,10 @@ export function MySlips() {
       <h2>My slips</h2>
       {loading && <p>Loading...</p>}
       {!loading && slips.length === 0 && (
-        <p>No slips yet. <a href="/borrow">Borrow equipment</a></p>
+        <div class="empty-state">
+          <p>No slips yet.</p>
+          <a class="btn" href="/borrow">Borrow equipment</a>
+        </div>
       )}
       <div class="slip-list">
         {slips.map((s) => (
